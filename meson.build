@@ -8,4 +8,4 @@ exe = executable('xwhite', 'xwhite.c',
   dependencies : dep,
   install : true)
 
-test('basic', exe)
+test('command line test', exe, args: ['1', '1', '1'])

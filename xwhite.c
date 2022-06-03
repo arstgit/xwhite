@@ -2,13 +2,13 @@
 #include <stdlib.h>
 #include <X11/extensions/Xrandr.h>
 
-void
+int
 setGamma (double red, double green, double blue)
 {
   Display *d;
   XRRScreenResources *xsr = NULL;
   XRRCrtcGamma *xcg;
-  double tmp;
+  double gvalue;
   int gammaSize;
 
   if (!(d = XOpenDisplay (NULL))
@@ -17,7 +17,7 @@ setGamma (double red, double green, double blue)
 					 RootWindow (d, DefaultScreen (d)))))
     {
       printf ("XOpenDisplay or XRRGetScreenResourcesCurrent failed");
-      return;
+      return 1;
     }
 
   for (int i = 0; i < xsr->ncrtc; i++)
@@ -26,24 +26,32 @@ setGamma (double red, double green, double blue)
       if (!(xcg = XRRAllocGamma (gammaSize)))
 	{
 	  printf ("XRRAllocGamma failed");
-	  return;
+	  return 1;
 	}
+
       for (int j = 0; j < gammaSize; j++)
 	{
-	  tmp = 65535.0 * j / gammaSize;
-	  xcg->red[j] = tmp * red;
-	  xcg->green[j] = tmp * green;
-	  xcg->blue[j] = tmp * blue;
+	  gvalue = 65535.0 * j / gammaSize;
+	  xcg->red[j] = gvalue * red;
+	  xcg->green[j] = gvalue * green;
+	  xcg->blue[j] = gvalue * blue;
 	}
+
       XRRSetCrtcGamma (d, xsr->crtcs[i], xcg);
       XFree (xcg);
     }
+
   XFree (xsr), XCloseDisplay (d);
+
+  return 0;
 }
 
 int
 main (int argc, char *argv[])
 {
+  double rgb[3];
+  int result;
+
   if (argc != 4)
     {
       printf ("Usage: xwhite RED GREEN BLUE\n"
@@ -52,12 +60,22 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  double red, green, blue;
-  red = strtod (argv[1], NULL);
-  green = strtod (argv[2], NULL);
-  blue = strtod (argv[3], NULL);
+  for (int i = 0; i < 3; i++)
+    {
+      rgb[i] = strtod (argv[i + 1], NULL);
+      if (rgb[i] < 0 || rgb[i] > 1)
+	{
+	  printf ("R, G and B parameters must be between 0 and 1.\n");
+	  exit (1);
+	}
+    }
 
-  setGamma (red, green, blue);
+  result = setGamma (rgb[0], rgb[1], rgb[2]);
+  if (result != 0)
+    {
+      printf ("Set gamma failed.");
+      exit (1);
+    }
 
   return 0;
 }
