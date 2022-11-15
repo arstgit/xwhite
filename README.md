@@ -7,10 +7,10 @@ It has a similar function as `redshift -P -g R:G:B -O temperature`, but `xwhite`
 ## Usage
 
 ```
-// xwhite R G B
+// xwhite --output <output> --rgb <R>:<G>:<B>
 // R G B {0-1}, normalized, mapped to gamut, logrithmic
 //       (sRGB primaries and gamma correction)
-xwhite 1.00000000 0.71976951 0.42860152
+xwhite --output LVDS-1 --rgb 1.00000000:0.71976951:0.42860152
 // 3000K color temperture.
 ```
 
